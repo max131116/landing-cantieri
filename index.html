@@ -21,6 +21,12 @@
 <script>
 (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "ze0okjtqvh");
 </script>
+<style>
+.anim .a-su{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.anim .a-foto{opacity:0;transform:scale(.96);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.anim .a-su.visto,.anim .a-foto.visto{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.anim .a-su,.anim .a-foto{opacity:1;transform:none;transition:none}}
+</style>
 </head>
 <body>
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=4167147603589375&amp;ev=PageView&amp;noscript=1" alt=""/></noscript>
@@ -78,7 +84,7 @@
           <p>Arriva la fattura di un mio subappaltatore. Giusta, per carità: aveva maturato la sua percentuale, perché i lavori li aveva fatti davvero.</p>
           <p>Il problema era dall'altra parte. Da quel cantiere io avevo incassato <strong>solo l'acconto iniziale</strong>. Il mio subappaltatore mi mandava la fattura del 60%, quando io non avevo ancora emesso nemmeno quella del 30%.</p>
           <div class="grid grid-cols-2 gap-3">
-            <div class="rounded-[14px] border border-[#FFE4E6] bg-[#FFF5F5] p-5 text-center"><div class="text-[40px] font-bold leading-none text-[#E11D48]">60%</div><div class="mt-2 text-[14px] leading-snug text-[#0D0D12]/70">la fattura del mio subappaltatore</div></div>
+            <div class="rounded-[14px] border border-[#FFE4E6] bg-[#FFF5F5] p-5 text-center"><div class="text-[40px] font-bold leading-none text-[#E11D48]" data-conta="60" data-dopo="%">60%</div><div class="mt-2 text-[14px] leading-snug text-[#0D0D12]/70">la fattura del mio subappaltatore</div></div>
             <div class="rounded-[14px] border border-black/10 bg-[#F6F6F9] p-5 text-center"><div class="text-[22px] font-bold leading-[1.1] text-[#0D0D12] md:text-[26px]">Solo l'acconto</div><div class="mt-2 text-[14px] leading-snug text-[#0D0D12]/70">quello che avevo incassato io</div></div>
           </div>
           <p>E attenzione, non perché non fossimo al trenta. <strong>Al trenta c'eravamo arrivati da un pezzo, forse venti giorni prima…</strong></p>
@@ -253,7 +259,7 @@
           <p>Se sei arrivato fin qui probabilmente sai di cosa parla.</p>
         </div>
         <div class="text-[17px] leading-[1.75] md:text-[18px] space-y-5 md:space-y-6 text-white/85 mt-10">
-          <div class="mb-6 rounded-[16px] border border-[#7B6CF0]/50 bg-[#7B6CF0]/10 p-6 text-center"><div class="text-[56px] font-bold leading-none text-[#A99DF5]">27</div><div class="mt-2 text-[16px] text-white/80">imprese in meno di due mesi</div></div>
+          <div class="mb-6 rounded-[16px] border border-[#7B6CF0]/50 bg-[#7B6CF0]/10 p-6 text-center"><div class="text-[56px] font-bold leading-none text-[#A99DF5]" data-conta="27">27</div><div class="mt-2 text-[16px] text-white/80">imprese in meno di due mesi</div></div>
           <p>In meno di due mesi Nelia l'hanno presa <strong class="text-[#A99DF5]">ventisette imprese</strong>. Non sono migliaia e non ti racconto che lo siano, anche perché il nostro lavoro principale restano i cantieri. Ma sono ventisette titolari che facevano esattamente quello che fai tu.</p>
           <p>E il fatto di essere partiti da poco, per te, ha due vantaggi.</p>
           <p>Il primo è che molto spesso aggiungiamo a Nelia le funzioni che ci chiedono i clienti, quando sono utili a tutti.</p>
@@ -611,6 +617,36 @@ document.querySelectorAll('[data-faq]').forEach(function (b) {
       erroreInvio.hidden = false;
     });
   });
+})();
+</script>
+<script>
+// Animazioni all'arrivo dei blocchi mentre si scorre (una volta sola).
+(function () {
+  if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var d = document.documentElement; d.classList.add('anim');
+  var sel = 'section h2, section p.uppercase, section .rounded-\\[12px\\], section .rounded-\\[14px\\], section .rounded-\\[16px\\], section blockquote, section figure, section .max-w-\\[340px\\], #form';
+  var vedi = [];
+  document.querySelectorAll(sel).forEach(function (el) {
+    if (el.closest('#cookie-banner') || el.closest('#barra-fissa') || el.parentElement.closest('.a-su,.a-foto')) return;
+    if (el.closest('section') === document.querySelector('section')) return; // la parte alta si vede subito
+    el.classList.add(el.matches('figure, .max-w-\\[340px\\]') ? 'a-foto' : 'a-su');
+    var fratelli = Array.prototype.filter.call(el.parentElement.children, function (c) { return c.matches(sel); });
+    if (fratelli.length > 1 && /grid|flex|space-y/.test(el.parentElement.className)) el.style.transitionDelay = Math.min(fratelli.indexOf(el), 4) * 90 + 'ms';
+    vedi.push(el);
+  });
+  function conta(el) {
+    var fine = +el.getAttribute('data-conta'), dopo = el.getAttribute('data-dopo') || '', t0 = null;
+    function passo(t) { if (!t0) t0 = t; var k = Math.min((t - t0) / 1100, 1), v = Math.round(fine * (1 - Math.pow(1 - k, 3))); el.textContent = v + dopo; if (k < 1) requestAnimationFrame(passo); }
+    requestAnimationFrame(passo);
+  }
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('visto'); io.unobserve(e.target);
+      e.target.querySelectorAll('[data-conta]').forEach(conta);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+  vedi.forEach(function (el) { io.observe(el); });
 })();
 </script>
 </body>
